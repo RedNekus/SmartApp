@@ -1,0 +1,12 @@
+{
+  "$schema": "https://schemas.wp.org/trunk/block.json",
+  "apiVersion": 3,
+  "name": "company/company-contact-form",
+  "version": "0.1.0",
+  "title": "Company Contact Form",
+  "category": "widgets",
+  "icon": "smiley",
+  "description": "Contact form with Gutenberg, REST API, and HubSpot integration.",
+  "supports": { "html": false },
+  "textdomain": "company-contact-form"
+}
