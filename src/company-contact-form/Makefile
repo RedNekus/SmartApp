@@ -2,32 +2,27 @@
 
 .PHONY: setup test lint lint-fix clean
 
-# Setup test environment (run once after docker compose up)
 setup:
 	docker compose exec -u root wordpress bash /var/www/html/wp-content/plugins/company-contact-form/bin/setup-tests.sh inside-container
 
-# Run PHPUnit tests (native WP_UnitTestCase)
 test:
-	docker compose exec -u www-data wordpress \
-		/var/www/html/wp-content/plugins/company-contact-form/vendor/bin/phpunit \
-		--configuration /var/www/html/wp-content/plugins/company-contact-form/phpunit.xml.dist \
-		--colors=always
+	docker compose exec -u www-data wordpress bash -c "\
+		cd /var/www/html/wp-content/plugins/company-contact-form && \
+		./vendor/bin/phpunit --colors=always"
 
-# Run PHPCS linting
+# PHPCS lint (read-only, www-data ok)
 lint:
-	docker compose exec -u www-data wordpress \
-		/var/www/html/wp-content/plugins/company-contact-form/vendor/bin/phpcs \
-		--standard=/var/www/html/wp-content/plugins/company-contact-form/phpcs.xml.dist \
-		/var/www/html/wp-content/plugins/company-contact-form
+	docker compose exec -u www-data wordpress bash -c "\
+		cd /var/www/html/wp-content/plugins/company-contact-form && \
+		./vendor/bin/phpcs ."
 
-# Auto-fix PHPCS issues
+# PHPCBF fix (needs write access, run as root)
 lint-fix:
-	docker compose exec -u www-data wordpress \
-		/var/www/html/wp-content/plugins/company-contact-form/vendor/bin/phpcbf \
-		--standard=/var/www/html/wp-content/plugins/company-contact-form/phpcs.xml.dist \
-		/var/www/html/wp-content/plugins/company-contact-form
+	docker compose exec -u root wordpress bash -c "\
+		cd /var/www/html/wp-content/plugins/company-contact-form && \
+		./vendor/bin/phpcbf . && \
+		chown -R 1000:1000 . 2>/dev/null || true"
 
-# Clean up
 clean:
 	docker compose exec -u www-data wordpress bash -c "\
 		rm -rf /var/www/html/wp-content/plugins/company-contact-form/vendor && \

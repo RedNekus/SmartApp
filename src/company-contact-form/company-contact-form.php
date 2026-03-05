@@ -6,6 +6,8 @@
  * Author: Fighter Neko
  * License: GPL-2.0+
  * Text Domain: company-contact-form
+ *
+ * @package Company Contact Form
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -20,15 +22,15 @@ define( 'CCF_URL', plugin_dir_url( __FILE__ ) );
  * ------------------------------------------------------------------------
  */
 spl_autoload_register(
-	static function ( $class ) {
+	static function ( $class_name ) { // phpcs:ignore Universal.NamingConventions.NoReservedKeywordParameterNames.classFound
 		$prefix   = 'CCF\\';
 		$base_dir = CCF_PATH . 'includes/';
 
-		if ( strpos( $class, $prefix ) !== 0 ) {
+		if ( strpos( $class_name, $prefix ) !== 0 ) {
 			return;
 		}
 
-		$relative_class = substr( $class, strlen( $prefix ) );
+		$relative_class = substr( $class_name, strlen( $prefix ) );
 		$file           = $base_dir . 'class-' . strtolower(
 			str_replace( '_', '-', $relative_class )
 		) . '.php';
@@ -45,7 +47,7 @@ spl_autoload_register(
  * ------------------------------------------------------------------------
  */
 if ( defined( 'WP_CLI' ) && WP_CLI ) {
-    WP_CLI::add_command( 'company-contact', 'CCF\\CLI' );
+	WP_CLI::add_command( 'company-contact', 'CCF\\CLI' );
 }
 
 /**
@@ -53,19 +55,22 @@ if ( defined( 'WP_CLI' ) && WP_CLI ) {
  * Activation / Deactivation
  * ------------------------------------------------------------------------
  */
-register_activation_hook( __FILE__, function () {
-	if ( class_exists( 'CCF\\Database' ) ) {
-		CCF\Database::create_table();
+register_activation_hook(
+	__FILE__,
+	function () {
+		if ( class_exists( 'CCF\\Database' ) ) {
+			CCF\Database::create_table();
+		}
+		if ( class_exists( 'CCF\\Logger' ) ) {
+			CCF\Logger::create_table();
+		}
+		if ( class_exists( 'CCF\\Activator' ) ) {
+			CCF\Activator::activate();
+		}
 	}
-	if ( class_exists( 'CCF\\Logger' ) ) {
-		CCF\Logger::create_table();
-	}
-	if ( class_exists( 'CCF\\Activator' ) ) {
-		CCF\Activator::activate();
-	}
-});
+);
 
-register_deactivation_hook( __FILE__, [ 'CCF\\Deactivator', 'deactivate' ] );
+register_deactivation_hook( __FILE__, array( 'CCF\\Deactivator', 'deactivate' ) );
 
 /**
  * ------------------------------------------------------------------------
@@ -82,7 +87,7 @@ function ccf_init() {
 	if ( class_exists( 'CCF\\API' ) ) {
 		CCF\API::register_routes();
 	}
-	
+
 	if ( is_admin() && class_exists( 'CCF\\Admin' ) ) {
 		CCF\Admin::init();
 	}
@@ -97,9 +102,9 @@ add_action( 'plugins_loaded', 'ccf_init' );
 function ccf_register_block() {
 	register_block_type(
 		__DIR__ . '/build/block.json',
-		[
+		array(
 			'render_callback' => 'ccf_render_form',
-		]
+		)
 	);
 }
 add_action( 'init', 'ccf_register_block' );
@@ -109,7 +114,7 @@ add_action( 'init', 'ccf_register_block' );
  * Server-side render
  * ------------------------------------------------------------------------
  */
-function ccf_render_form( $attributes, $content ) {
+function ccf_render_form( $attributes, $_content ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed
 	ob_start();
 	?>
 	<div class="ccf-form-wrapper">
@@ -149,7 +154,7 @@ function ccf_render_form( $attributes, $content ) {
 			</p>
 
 			<div class="ccf-response" aria-live="polite"></div>
-			<input type="hidden" name="ccf_block_attributes" value="<?php echo esc_attr(json_encode($attributes)); ?>">
+			<input type="hidden" name="ccf_block_attributes" value="<?php echo esc_attr( wp_json_encode( $attributes ) ); ?>">
 		</form>
 	</div>
 	<?php
@@ -184,16 +189,16 @@ function ccf_enqueue_frontend_assets() {
 	wp_localize_script(
 		'ccf-block',
 		'ccfSettings',
-		[
+		array(
 			'nonce'  => wp_create_nonce( 'wp_rest' ),
 			'apiUrl' => rest_url( 'company/v1/contact' ),
-		]
+		)
 	);
 
 	wp_enqueue_style(
 		'ccf-style',
 		CCF_URL . 'build/style-index.css',
-		[],
+		array(),
 		$asset['version']
 	);
 }
@@ -223,7 +228,7 @@ function ccf_enqueue_editor_assets() {
 	wp_enqueue_style(
 		'ccf-editor-style',
 		CCF_URL . 'build/style-index.css',
-		[],
+		array(),
 		$asset['version']
 	);
 }
@@ -236,20 +241,29 @@ add_action( 'enqueue_block_editor_assets', 'ccf_enqueue_editor_assets' );
  */
 if ( defined( 'SMTP_HOST' ) && function_exists( 'add_filter' ) ) {
 	add_filter( 'wp_mail_use_phpmailer', '__return_true' );
-	
-	add_action( 'phpmailer_init', function( $phpmailer ) {
-		$phpmailer->isSMTP();
-		$phpmailer->Host       = SMTP_HOST;
-		$phpmailer->Port       = SMTP_PORT;
-		$phpmailer->SMTPAuth   = false;
-		$phpmailer->SMTPSecure = '';
-		
-		$admin_email = get_option('admin_email');
-		$site_name   = get_bloginfo('name');
-		
-		$phpmailer->From     = is_email($admin_email) ? $admin_email : 'noreply@localhost.local';
-		$phpmailer->FromName = $site_name ?: 'WordPress';
-		
-		error_log('[CCF] SMTP: Configured From=' . $phpmailer->From);
-	}, 1);
+
+	add_action(
+		'phpmailer_init',
+		function ( $phpmailer ) {
+			$phpmailer->isSMTP();
+			// phpcs:disable WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+			$phpmailer->Host       = SMTP_HOST;
+			$phpmailer->Port       = SMTP_PORT;
+			$phpmailer->SMTPAuth   = false;
+			$phpmailer->SMTPSecure = '';
+			// phpcs:enable WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+
+			$admin_email = get_option( 'admin_email' );
+			$site_name   = get_bloginfo( 'name' );
+
+			// phpcs:disable WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+			$phpmailer->From     = is_email( $admin_email ) ? $admin_email : 'noreply@localhost.local';
+			$phpmailer->FromName = $site_name ?: 'WordPress';
+			// phpcs:enable WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+
+			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+			error_log( '[CCF] SMTP: Configured From=' . $phpmailer->From );
+		},
+		1
+	);
 }

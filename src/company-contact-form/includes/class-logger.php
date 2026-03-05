@@ -3,155 +3,165 @@
  * Logger Class - Custom logging table with 30-day rotation
  *
  * @package Company Contact Form
- * @since 1.2.0
+ * @since   1.2.0
  */
 
 namespace CCF;
 
+/**
+ * Logger class for storing form submission events.
+ *
+ * Handles logging to custom database table with automatic 30-day rotation.
+ */
 class Logger {
-    /**
-     * Table name (without prefix)
-     *
-     * @var string
-     */
-    private static $table_name = 'ccf_logs';
 
-    /**
-     * Create logs table on plugin activation
-     *
-     * @return void
-     */
-    public static function create_table() {
-        global $wpdb;
+	/**
+	 * Table name (without prefix)
+	 *
+	 * @var string
+	 */
+	private static $table_name = 'ccf_logs';
 
-        $table_name = $wpdb->prefix . self::$table_name;
-        $charset_collate = $wpdb->get_charset_collate();
+	/**
+	 * Create logs table on plugin activation.
+	 *
+	 * @return void
+	 */
+	public static function create_table() {
+		global $wpdb;
 
-        $sql = "CREATE TABLE $table_name (
-            id bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
-            timestamp datetime DEFAULT CURRENT_TIMESTAMP NOT NULL,
-            email varchar(255) NOT NULL,
-            result varchar(50) NOT NULL,
-            hubspot_id varchar(100) DEFAULT '',
-            user_ip varchar(50) NOT NULL,
-            PRIMARY KEY (id),
-            KEY email (email),
-            KEY timestamp (timestamp),
-            KEY result (result)
-        ) $charset_collate;";
+		$table_name      = $wpdb->prefix . self::$table_name;
+		$charset_collate = $wpdb->get_charset_collate();
 
-        require_once ABSPATH . 'wp-admin/includes/upgrade.php';
-        dbDelta( $sql );
-    }
+		$sql = "CREATE TABLE $table_name (
+			id bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+			timestamp datetime DEFAULT CURRENT_TIMESTAMP NOT NULL,
+			email varchar(255) NOT NULL,
+			result varchar(50) NOT NULL,
+			hubspot_id varchar(100) DEFAULT '',
+			user_ip varchar(50) NOT NULL,
+			PRIMARY KEY (id),
+			KEY email (email),
+			KEY timestamp (timestamp),
+			KEY result (result)
+		) $charset_collate;";
 
-    /**
-     * Log a submission event
-     *
-     * @param string $email      Submitter email.
-     * @param string $result     Result status (received, spam_blocked, hubspot_sent, etc).
-     * @param string $hubspot_id HubSpot contact/form ID (optional).
-     * @param string $user_ip    User IP address.
-     * @return int|false Inserted log ID or false on failure.
-     */
-    public static function log( $email, $result, $hubspot_id = '', $user_ip = '' ) {
-        global $wpdb;
+		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
+		dbDelta( $sql );
+	}
 
-        $table_name = $wpdb->prefix . self::$table_name;
+	/**
+	 * Log a submission event.
+	 *
+	 * @param string $email      Submitter email.
+	 * @param string $result     Result status.
+	 * @param string $hubspot_id HubSpot ID.
+	 * @param string $user_ip    User IP address.
+	 * @return int|false
+	 */
+	public static function log( $email, $result, $hubspot_id = '', $user_ip = '' ) {
+		global $wpdb;
 
-        $inserted = $wpdb->insert(
-            $table_name,
-            [
-                'email'      => sanitize_email( $email ),
-                'result'     => sanitize_text_field( $result ),
-                'hubspot_id' => sanitize_text_field( $hubspot_id ),
-                'user_ip'    => sanitize_text_field( $user_ip ),
-            ],
-            [ '%s', '%s', '%s', '%s' ]
-        );
+		$table_name = $wpdb->prefix . self::$table_name;
 
-        // Rotate: delete logs older than 30 days
-        self::rotate_logs();
+		$inserted = $wpdb->insert(
+			$table_name,
+			array(
+				'email'      => sanitize_email( $email ),
+				'result'     => sanitize_text_field( $result ),
+				'hubspot_id' => sanitize_text_field( $hubspot_id ),
+				'user_ip'    => sanitize_text_field( $user_ip ),
+			),
+			array( '%s', '%s', '%s', '%s' )
+		);
 
-        if ( false === $inserted ) {
-            error_log( '[CCF] Logger: Failed to insert log - ' . $wpdb->last_error );
-            return false;
-        }
+		self::rotate_logs();
 
-        $log_id = $wpdb->insert_id;
-        error_log( '[CCF] Logger: Log entry created with ID ' . $log_id );
+		if ( false === $inserted ) {
+			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+			error_log( '[CCF] Logger: Failed to insert log - ' . $wpdb->last_error );
+			return false;
+		}
 
-        return $log_id;
-    }
+		$log_id = $wpdb->insert_id;
+		// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+		error_log( '[CCF] Logger: Log entry created with ID ' . $log_id );
 
-    /**
-     * Delete logs older than 30 days (rotation)
-     *
-     * @return int|false Number of rows deleted or false on failure.
-     */
-    public static function rotate_logs() {
-        global $wpdb;
+		return $log_id;
+	}
 
-        $table_name = $wpdb->prefix . self::$table_name;
+	/**
+	 * Delete logs older than specified days.
+	 *
+	 * @param int $days Days to keep. Default 30.
+	 * @return int|false
+	 */
+	public static function rotate_logs( $days = 30 ) {
+		global $wpdb;
 
-        $deleted = $wpdb->query(
-            $wpdb->prepare(
-                "DELETE FROM $table_name WHERE timestamp < DATE_SUB(NOW(), INTERVAL 30 DAY)"
-            )
-        );
+		$table_name = $wpdb->prefix . self::$table_name;
 
-        if ( false !== $deleted && $deleted > 0 ) {
-            error_log( '[CCF] Logger: Rotated ' . $deleted . ' old log entries' );
-        }
+		$deleted = $wpdb->query(
+			$wpdb->prepare(
+				"DELETE FROM $table_name WHERE timestamp < DATE_SUB(NOW(), INTERVAL %d DAY)",  // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				$days
+			)
+		);
 
-        return $deleted;
-    }
+		if ( false !== $deleted && $deleted > 0 ) {
+			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+			error_log( '[CCF] Logger: Rotated ' . $deleted . ' old log entries' );
+		}
 
-    /**
-     * Get logs with pagination
-     *
-     * @param int $per_page Items per page.
-     * @param int $page     Current page number.
-     * @return array        Array of log entries.
-     */
-    public static function get_logs( $per_page = 50, $page = 1 ) {
-        global $wpdb;
+		return $deleted;
+	}
 
-        $table_name = $wpdb->prefix . self::$table_name;
-        $offset     = ( $page - 1 ) * $per_page;
+	/**
+	 * Get logs with pagination.
+	 *
+	 * @param int $per_page Items per page. Default 50.
+	 * @param int $page     Current page. Default 1.
+	 * @return array
+	 */
+	public static function get_logs( $per_page = 50, $page = 1 ) {
+		global $wpdb;
 
-        return $wpdb->get_results(
-            $wpdb->prepare(
-                "SELECT * FROM $table_name ORDER BY timestamp DESC LIMIT %d OFFSET %d",
-                $per_page,
-                $offset
-            ),
-            'ARRAY_A'
-        );
-    }
+		$table_name = $wpdb->prefix . self::$table_name;
+		$offset     = ( $page - 1 ) * $per_page;
 
-    /**
-     * Get total log count
-     *
-     * @return int Total number of log entries.
-     */
-    public static function get_logs_count() {
-        global $wpdb;
+		return $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT * FROM $table_name ORDER BY timestamp DESC LIMIT %d OFFSET %d",  // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				$per_page,
+				$offset
+			),
+			ARRAY_A
+		);
+	}
 
-        $table_name = $wpdb->prefix . self::$table_name;
+	/**
+	 * Get total log count.
+	 *
+	 * @return int
+	 */
+	public static function get_logs_count() {
+		global $wpdb;
 
-        return (int) $wpdb->get_var( "SELECT COUNT(*) FROM $table_name" );
-    }
+		$table_name = $wpdb->prefix . self::$table_name;
 
-    /**
-     * Clear all logs (for admin use)
-     *
-     * @return int|false Number of rows deleted or false on failure.
-     */
-    public static function clear_all() {
-        global $wpdb;
+		return (int) $wpdb->get_var( "SELECT COUNT(*) FROM $table_name" );  // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+	}
 
-        $table_name = $wpdb->prefix . self::$table_name;
+	/**
+	 * Clear all logs.
+	 *
+	 * @return int|false
+	 */
+	public static function clear_all() {
+		global $wpdb;
 
-        return $wpdb->query( "TRUNCATE TABLE $table_name" );
-    }
+		$table_name = $wpdb->prefix . self::$table_name;
+
+		return $wpdb->query( "TRUNCATE TABLE $table_name" );  // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+	}
 }
