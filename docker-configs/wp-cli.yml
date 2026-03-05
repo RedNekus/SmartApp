@@ -1,0 +1,4 @@
+# WP-CLI configuration for Company Contact Form
+require:
+  - /var/www/html/wp-content/plugins/company-contact-form/includes/class-cli.php
+  - /var/www/html/wp-content/plugins/company-contact-form/wp-cli-register.php
