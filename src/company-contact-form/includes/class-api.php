@@ -120,7 +120,7 @@ class API {
         // 6. Save to database
         \CCF\Database::save_submission($data);  // ← ДОБАВИТЬ ЭТУ СТРОКУ
 
-        // 6. Логирование (заглушка)
+        // 7. Логирование (заглушка)
         if (class_exists('CCF\Logger')) {
             \CCF\Logger::log($email, 'received', null, $data['ip']);
         }
@@ -219,18 +219,15 @@ class API {
         $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         $error = curl_error($ch);
         curl_close($ch);
-        
-        // Логирование
-        if ($http_code >= 200 && $http_code < 300) {
-            error_log('[CCF] HubSpot: submission successful');
+
+        // В конце метода, после отправки:
+        if ( $http_code >= 200 && $http_code < 300 ) {
+            error_log( '[CCF] HubSpot: submission successful' );
+            \CCF\Logger::log( $request->get_param( 'email' ), 'hubspot_sent', $form_id, self::get_client_ip() );
             return true;
         } else {
-            error_log(sprintf(
-                '[CCF] HubSpot error: HTTP %d | Response: %s | cURL: %s',
-                $http_code,
-                $response,
-                $error
-            ));
+            error_log( sprintf( '[CCF] HubSpot error: HTTP %d', $http_code ) );
+            \CCF\Logger::log( $request->get_param( 'email' ), 'hubspot_failed', $form_id, self::get_client_ip() );
             return false;
         }
     }

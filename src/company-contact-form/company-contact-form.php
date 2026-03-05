@@ -245,3 +245,15 @@ if ( defined( 'SMTP_HOST' ) && function_exists( 'add_filter' ) ) {
         error_log('[CCF] SMTP: Configured From=' . $phpmailer->From);
     }, 1);
 }
+
+register_activation_hook( __FILE__, function () {
+    if ( class_exists( 'CCF\\Database' ) ) {
+        CCF\Database::create_table();
+    }
+    if ( class_exists( 'CCF\\Logger' ) ) {
+        CCF\Logger::create_table();  // ← Добавить
+    }
+    if ( class_exists( 'CCF\\Activator' ) ) {
+        CCF\Activator::activate();
+    }
+});
