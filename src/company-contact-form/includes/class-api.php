@@ -107,7 +107,9 @@ class API {
             'timestamp'  => current_time('mysql'),
         ];
 
-        // 4. TODO: антиспам, логирование, HubSpot, email
+        // 4. HubSpot integration (MOCK or PRODUCTION)
+        // Передаём пустой массив атрибутов — метод сам определит режим по токенам
+        self::send_to_hubspot($request, []);
 
         // 5. Логирование (заглушка)
         if (class_exists('CCF\Logger')) {
@@ -119,5 +121,108 @@ class API {
             'message' => 'Form submitted successfully',
             'data' => ['email' => $email]
         ]);
+    }
+    /**
+     * Отправка данных в HubSpot (с поддержкой Mock-режима)
+     */
+    private static function send_to_hubspot($request, $attributes) {
+        // Проверяем, есть ли реальные токены
+        $use_constants = defined('CCF_HUBSPOT_USE_CONSTANTS') && CCF_HUBSPOT_USE_CONSTANTS;
+        
+        if ($use_constants) {
+            $token = defined('CCF_HUBSPOT_TOKEN') ? CCF_HUBSPOT_TOKEN : '';
+            $portal_id = defined('CCF_HUBSPOT_PORTAL_ID') ? CCF_HUBSPOT_PORTAL_ID : '';
+            $form_id = defined('CCF_HUBSPOT_FORM_ID') ? CCF_HUBSPOT_FORM_ID : '';
+        } else {
+            $token = $attributes['hubspotAccessToken'] ?? '';
+            $portal_id = $attributes['hubspotPortalId'] ?? '';
+            $form_id = $attributes['hubspotFormId'] ?? '';
+        }
+        
+        // === MOCK MODE: если нет токенов ===
+        if (empty($token) || empty($portal_id) || empty($form_id)) {
+            error_log('[CCF] HubSpot MOCK MODE: Integration not configured');
+            error_log('[CCF] HubSpot MOCK: first_name=' . sanitize_text_field($request->get_param('first_name')));
+            error_log('[CCF] HubSpot MOCK: last_name=' . sanitize_text_field($request->get_param('last_name')));
+            error_log('[CCF] HubSpot MOCK: email=' . sanitize_email($request->get_param('email')));
+            error_log('[CCF] HubSpot MOCK: message=' . sanitize_textarea_field($request->get_param('message')));
+            error_log('[CCF] HubSpot MOCK: To enable real integration, add HubSpot credentials to wp-config.php');
+            return true; // Не блокируем форму
+        }
+        
+        // === PRODUCTION MODE: реальная отправка ===
+        // Маппинг полей формы → HubSpot property names
+        $field_map = [
+            'first_name' => 'firstname',
+            'last_name'  => 'lastname',
+            'email'      => 'email',
+            'message'    => 'message',
+            'subject'    => 'subject',
+        ];
+        
+        $fields = [];
+        foreach ($field_map as $form_field => $hubspot_prop) {
+            $value = $request->get_param($form_field);
+            if (!empty($value)) {
+                $fields[] = [
+                    'name'  => $hubspot_prop,
+                    'value' => sanitize_text_field($value),
+                ];
+            }
+        }
+        
+        if (empty($fields)) {
+            error_log('[CCF] HubSpot: no fields to send');
+            return false;
+        }
+        
+        // Подготовка запроса
+        $url = sprintf(
+            'https://api.hubapi.com/submissions/v3/integration/submit/%s/%s',
+            $portal_id,
+            $form_id
+        );
+        
+        $payload = [
+            'fields' => $fields,
+            'context' => [
+                'pageUri'   => home_url($_SERVER['REQUEST_URI'] ?? ''),
+                'pageName'  => get_the_title() ?: '',
+                'ipAddress' => self::get_client_ip(),
+            ],
+        ];
+        
+        // cURL запрос
+        $ch = curl_init($url);
+        curl_setopt_array($ch, [
+            CURLOPT_POST           => true,
+            CURLOPT_POSTFIELDS     => json_encode($payload),
+            CURLOPT_HTTPHEADER     => [
+                'Content-Type: application/json',
+                'Authorization: Bearer ' . $token,
+            ],
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_TIMEOUT        => 10,
+            CURLOPT_SSL_VERIFYPEER => true,
+        ]);
+        
+        $response = curl_exec($ch);
+        $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $error = curl_error($ch);
+        curl_close($ch);
+        
+        // Логирование
+        if ($http_code >= 200 && $http_code < 300) {
+            error_log('[CCF] HubSpot: submission successful');
+            return true;
+        } else {
+            error_log(sprintf(
+                '[CCF] HubSpot error: HTTP %d | Response: %s | cURL: %s',
+                $http_code,
+                $response,
+                $error
+            ));
+            return false;
+        }
     }
 }

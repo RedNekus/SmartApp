@@ -10,5 +10,31 @@
   "supports": {
     "html": false
   },
-  "textdomain": "company-contact-form"
+  "textdomain": "company-contact-form",
+  "attributes": {
+    "recipientEmail": {
+      "type": "string",
+      "default": ""
+    },
+    "subjectPrefix": {
+      "type": "string",
+      "default": ""
+    },
+    "enableHubSpot": {
+      "type": "boolean",
+      "default": false
+    },
+    "hubspotPortalId": {
+      "type": "string",
+      "default": ""
+    },
+    "hubspotFormId": {
+      "type": "string",
+      "default": ""
+    },
+    "hubspotAccessToken": {
+      "type": "string",
+      "default": ""
+    }
+  }
 }
