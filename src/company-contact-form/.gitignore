@@ -34,3 +34,17 @@ languages/*.po
 languages/*.mo
 !languages/company-contact-form.pot
 !languages/company-contact-form-ru_RU.po
+
+# --- PHP / Composer ---
+/vendor/
+composer.lock
+.phpunit.result.cache
+coverage/
+.phpunit.cache/
+
+# WordPress Test Library (downloaded locally)
+/tmp/wordpress-tests-lib/
+
+# PHP IDE / Editor
+*.php.swp
+.php_cs.cache

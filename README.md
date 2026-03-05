@@ -105,3 +105,57 @@ define('SMTP_HOST', 'smtp.yourserver.com');
 define('SMTP_PORT', 587);
 define('SMTP_FROM_EMAIL', 'noreply@yourdomain.com');
 define('SMTP_FROM_NAME', 'Your Site Name');
+
+## 🧪 Running Tests
+
+### Prerequisites
+- Docker & Docker Compose
+- Git
+
+### Quick Start
+
+    # 1. Clone and start environment
+    git clone <repo-url>
+    cd company-contact-form
+    docker compose up -d
+
+    # 2. Setup test environment
+    make setup
+
+    # 3. Run tests
+    make test
+
+    # 4. Run code style check
+    make lint
+
+### What setup does:
+- Installs Composer (if missing in container)
+- Installs subversion for WordPress Test Library
+- Runs composer install (PHPUnit, PHPCS, Polyfills)
+- Downloads WordPress Test Library 6.5
+- Creates wordpress_test database
+- Generates wp-tests-config.php
+- Fixes file permissions
+
+### Manual test execution:
+
+    docker compose exec -u www-data wordpress \
+      /var/www/html/wp-content/plugins/company-contact-form/vendor/bin/phpunit \
+      --configuration /var/www/html/wp-content/plugins/company-contact-form/phpunit.xml.dist
+
+### Test coverage:
+- Email validation: RFC-compliant validation with data providers
+- Nonce verification: WordPress security nonce lifecycle
+- Rate limiting: Transient-based request throttling
+- Class structure: Verifies API, Logger, Database classes
+- Plugin constants: Ensures required constants are defined
+
+### Reproducibility:
+The test environment is fully reproducible on any machine with Docker:
+
+    1. git clone the repository
+    2. docker compose up -d
+    3. make setup (one-time)
+    4. make test
+
+Expected: 10 tests, 20 assertions, 100% pass rate

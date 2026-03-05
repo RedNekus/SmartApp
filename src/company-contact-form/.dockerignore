@@ -1,0 +1,24 @@
+# Dependencies (mounted from host or installed in container)
+/vendor/
+/node_modules/
+
+# Build artifacts
+/build/
+/*.zip
+
+# IDE / Editor
+/.vscode/
+/.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs / Coverage (generated)
+/coverage/
+*.log
+
+# Git
+/.git/
