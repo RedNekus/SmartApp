@@ -1,8 +1,8 @@
 <?php
 /**
  * Plugin Name: Company Contact Form
- * Description: Contact form with Gutenberg, REST API, and HubSpot integration.
- * Version: 1.0.0
+ * Description: Contact form with Gutenberg, REST API, HubSpot integration, and database storage.
+ * Version: 1.1.0
  * Author: Fighter Neko
  * License: GPL-2.0+
  * Text Domain: company-contact-form
@@ -10,7 +10,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'CCF_VERSION', '1.0.0' );
+define( 'CCF_VERSION', '1.1.0' );
 define( 'CCF_PATH', plugin_dir_path( __FILE__ ) );
 define( 'CCF_URL', plugin_dir_url( __FILE__ ) );
 
@@ -44,7 +44,18 @@ spl_autoload_register(
  * Activation / Deactivation
  * ------------------------------------------------------------------------
  */
-register_activation_hook( __FILE__, [ 'CCF\\Activator', 'activate' ] );
+register_activation_hook( __FILE__, function () {
+    // Создаём таблицу БД при активации
+    if ( class_exists( 'CCF\\Database' ) ) {
+        CCF\Database::create_table();
+    }
+    
+    // Вызов старого активатора, если есть
+    if ( class_exists( 'CCF\\Activator' ) ) {
+        CCF\Activator::activate();
+    }
+});
+
 register_deactivation_hook( __FILE__, [ 'CCF\\Deactivator', 'deactivate' ] );
 
 /**
@@ -61,6 +72,11 @@ function ccf_init() {
 
     if ( class_exists( 'CCF\\API' ) ) {
         CCF\API::register_routes();
+    }
+    
+    // Инициализация админки (только в админ-панели)
+    if ( is_admin() && class_exists( 'CCF\\Admin' ) ) {
+        CCF\Admin::init();
     }
 }
 add_action( 'plugins_loaded', 'ccf_init' );
@@ -206,7 +222,9 @@ function ccf_enqueue_editor_assets() {
 add_action( 'enqueue_block_editor_assets', 'ccf_enqueue_editor_assets' );
 
 /**
- * SMTP Configuration for MailHog - Fixed From address
+ * ------------------------------------------------------------------------
+ * SMTP Configuration for MailHog
+ * ------------------------------------------------------------------------
  */
 if ( defined( 'SMTP_HOST' ) && function_exists( 'add_filter' ) ) {
     add_filter( 'wp_mail_use_phpmailer', '__return_true' );
@@ -218,7 +236,6 @@ if ( defined( 'SMTP_HOST' ) && function_exists( 'add_filter' ) ) {
         $phpmailer->SMTPAuth   = false;
         $phpmailer->SMTPSecure = '';
         
-        // ✅ Используем реальный admin_email WordPress
         $admin_email = get_option('admin_email');
         $site_name   = get_bloginfo('name');
         

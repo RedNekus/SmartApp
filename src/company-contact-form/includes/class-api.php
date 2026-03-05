@@ -117,6 +117,9 @@ class API {
         // 5. Email notification to admin
         self::send_admin_email($data, $attributes);
 
+        // 6. Save to database
+        \CCF\Database::save_submission($data);  // ← ДОБАВИТЬ ЭТУ СТРОКУ
+
         // 6. Логирование (заглушка)
         if (class_exists('CCF\Logger')) {
             \CCF\Logger::log($email, 'received', null, $data['ip']);
@@ -273,9 +276,11 @@ class API {
             'Content-Type: text/plain; charset=UTF-8',
         ];
 
+        // Отладка
         error_log('[CCF] Email: Attempting to send via wp_mail()');
         error_log('[CCF] Email: To=' . $recipient . ', Subject=' . $subject);
 
+        // Отправка
         $sent = wp_mail($recipient, $subject, $message, $headers);
 
         if ($sent) {
@@ -283,22 +288,10 @@ class API {
             return true;
         } else {
             error_log('[CCF] Email: wp_mail() returned FALSE');
-            // Попробуем получить ошибку из глобального $phpmailer
             global $phpmailer;
             if (is_object($phpmailer) && !empty($phpmailer->ErrorInfo)) {
                 error_log('[CCF] Email: PHPMailer error: ' . $phpmailer->ErrorInfo);
             }
-            return false;
-        }
-
-        // Отправка
-        $sent = wp_mail($recipient, $subject, $message, $headers);
-        
-        if ($sent) {
-            error_log('[CCF] Email: sent to ' . $recipient);
-            return true;
-        } else {
-            error_log('[CCF] Email: failed to send to ' . $recipient);
             return false;
         }
     }
