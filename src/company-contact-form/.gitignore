@@ -28,3 +28,9 @@ node_modules/
 
 # dotenv environment variables file
 .env
+
+# Translations
+languages/*.po
+languages/*.mo
+!languages/company-contact-form.pot
+!languages/company-contact-form-ru_RU.po

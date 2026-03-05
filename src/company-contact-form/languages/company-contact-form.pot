@@ -1,0 +1,143 @@
+# Copyright (C) 2026 Fighter Neko
+msgid ""
+msgstr ""
+"Project-Id-Version: Company Contact Form 1.2.0\n"
+"Report-Msgid-Bugs-To: https://github.com/yourusername/company-contact-form/issues\n"
+"POT-Creation-Date: 2026-03-05T00:00:00+00:00\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: en\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Domain: company-contact-form\n"
+
+#: includes/class-admin.php:45
+msgid "Contact Form Submissions"
+msgstr ""
+
+#: includes/class-admin.php:46
+msgid "Contact Form"
+msgstr ""
+
+#: includes/class-admin.php:57
+msgid "Submission deleted"
+msgstr ""
+
+#: includes/class-admin.php:72
+msgid "Logs cleared"
+msgstr ""
+
+#: includes/class-admin.php:93
+msgid "Submissions"
+msgstr ""
+
+#: includes/class-admin.php:98
+msgid "Logs"
+msgstr ""
+
+#: includes/class-admin.php:119
+msgid "Export CSV"
+msgstr ""
+
+#: includes/class-admin.php:126
+#: includes/class-admin.php:209
+msgid "ID"
+msgstr ""
+
+#: includes/class-admin.php:127
+#: includes/class-admin.php:211
+msgid "Name"
+msgstr ""
+
+#: includes/class-admin.php:128
+#: includes/class-admin.php:212
+msgid "Email"
+msgstr ""
+
+#: includes/class-admin.php:129
+msgid "Subject"
+msgstr ""
+
+#: includes/class-admin.php:130
+msgid "Message"
+msgstr ""
+
+#: includes/class-admin.php:131
+#: includes/class-admin.php:214
+msgid "IP"
+msgstr ""
+
+#: includes/class-admin.php:132
+msgid "Date"
+msgstr ""
+
+#: includes/class-admin.php:133
+#: includes/class-admin.php:213
+msgid "Actions"
+msgstr ""
+
+#: includes/class-admin.php:137
+#: includes/class-admin.php:218
+msgid "No submissions yet"
+msgstr ""
+
+#: includes/class-admin.php:162
+#: includes/class-admin.php:245
+msgid "Delete"
+msgstr ""
+
+#: includes/class-admin.php:187
+msgid "Clear All Logs"
+msgstr ""
+
+#: includes/class-admin.php:191
+msgid "Auto-rotation: logs older than 30 days are deleted automatically"
+msgstr ""
+
+#: includes/class-admin.php:200
+msgid "All results"
+msgstr ""
+
+#: includes/class-admin.php:206
+msgid "Filter"
+msgstr ""
+
+#: includes/class-admin.php:208
+msgid "Reset"
+msgstr ""
+
+#: includes/class-admin.php:210
+msgid "Timestamp"
+msgstr ""
+
+#: includes/class-admin.php:213
+msgid "Result"
+msgstr ""
+
+#: includes/class-admin.php:214
+msgid "HubSpot ID"
+msgstr ""
+
+#: includes/class-admin.php:218
+msgid "No logs yet"
+msgstr ""
+
+#: company-contact-form.php:145
+msgid "First Name"
+msgstr ""
+
+#: company-contact-form.php:151
+msgid "Last Name"
+msgstr ""
+
+#: company-contact-form.php:157
+msgid "Email"
+msgstr ""
+
+#: company-contact-form.php:163
+msgid "Message"
+msgstr ""
+
+#: company-contact-form.php:169
+msgid "Send"
+msgstr ""
