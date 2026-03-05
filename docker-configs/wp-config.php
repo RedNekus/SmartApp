@@ -108,8 +108,8 @@ $table_prefix = getenv_docker('WORDPRESS_TABLE_PREFIX', 'wp_');
  * @link https://developer.wordpress.org/advanced-administration/debug/debug-wordpress/
  */
 define( 'WP_DEBUG', true );
-define( 'WP_DEBUG_LOG', true );        // ← ДОБАВИТЬ
-define( 'WP_DEBUG_DISPLAY', false );   // ← ДОБАВИТЬ
+define( 'WP_DEBUG_LOG', true );
+define( 'WP_DEBUG_DISPLAY', false );
 /* Add any custom values between this line and the "stop editing" line. */
 
 // If we're behind a proxy server and using HTTPS, we need to alert WordPress of that fact
@@ -136,6 +136,16 @@ define( 'CCF_HUBSPOT_FORM_ID', getenv_docker( 'CCF_HUBSPOT_FORM_ID', '' ) );
 define( 'CCF_HUBSPOT_USE_CONSTANTS', getenv_docker( 'CCF_HUBSPOT_USE_CONSTANTS', 'false' ) === 'true' );
 
 /* That's all, stop editing! Happy publishing. */
+
+/**
+ * ---------------------------------------------------------------------
+ * SMTP Configuration (MailHog for development)
+ * ---------------------------------------------------------------------
+ */
+define( 'SMTP_HOST', 'mailhog' );
+define( 'SMTP_PORT', 1025 );
+define( 'SMTP_FROM_EMAIL', 'wordpress@localhost' );
+define( 'SMTP_FROM_NAME', 'Company Contact Form' );
 
 /** Absolute path to the WordPress directory. */
 if ( ! defined( 'ABSPATH' ) ) {

@@ -125,6 +125,7 @@ function ccf_render_form( $attributes, $content ) {
             </p>
 
             <div class="ccf-response" aria-live="polite"></div>
+            <input type="hidden" name="ccf_block_attributes" value="<?php echo esc_attr(json_encode($attributes)); ?>">
         </form>
     </div>
     <?php
@@ -203,3 +204,27 @@ function ccf_enqueue_editor_assets() {
     );
 }
 add_action( 'enqueue_block_editor_assets', 'ccf_enqueue_editor_assets' );
+
+/**
+ * SMTP Configuration for MailHog - Fixed From address
+ */
+if ( defined( 'SMTP_HOST' ) && function_exists( 'add_filter' ) ) {
+    add_filter( 'wp_mail_use_phpmailer', '__return_true' );
+    
+    add_action( 'phpmailer_init', function( $phpmailer ) {
+        $phpmailer->isSMTP();
+        $phpmailer->Host       = SMTP_HOST;
+        $phpmailer->Port       = SMTP_PORT;
+        $phpmailer->SMTPAuth   = false;
+        $phpmailer->SMTPSecure = '';
+        
+        // ✅ Используем реальный admin_email WordPress
+        $admin_email = get_option('admin_email');
+        $site_name   = get_bloginfo('name');
+        
+        $phpmailer->From     = is_email($admin_email) ? $admin_email : 'noreply@localhost.local';
+        $phpmailer->FromName = $site_name ?: 'WordPress';
+        
+        error_log('[CCF] SMTP: Configured From=' . $phpmailer->From);
+    }, 1);
+}

@@ -67,6 +67,9 @@ class API {
     }
 
     public static function handle_submission($request) {
+        // Распаковка атрибутов блока из скрытого поля
+        $attributes_json = $request->get_param('ccf_block_attributes');
+        $attributes = $attributes_json ? json_decode($attributes_json, true) : [];
         // 1. Nonce check
         /*
         if (!wp_verify_nonce($request->get_header('X-WP-Nonce'), 'wp_rest')) {
@@ -109,9 +112,12 @@ class API {
 
         // 4. HubSpot integration (MOCK or PRODUCTION)
         // Передаём пустой массив атрибутов — метод сам определит режим по токенам
-        self::send_to_hubspot($request, []);
+        self::send_to_hubspot($request, $attributes);
 
-        // 5. Логирование (заглушка)
+        // 5. Email notification to admin
+        self::send_admin_email($data, $attributes);
+
+        // 6. Логирование (заглушка)
         if (class_exists('CCF\Logger')) {
             \CCF\Logger::log($email, 'received', null, $data['ip']);
         }
@@ -225,4 +231,76 @@ class API {
             return false;
         }
     }
+
+    /**
+     * Отправка email-уведомления администратору
+     */
+    private static function send_admin_email($data, $attributes) {
+        // Получатель: из настроек блока или email админа по умолчанию
+        $recipient = !empty($attributes['recipientEmail']) 
+            ? sanitize_email($attributes['recipientEmail']) 
+            : get_option('admin_email');
+        
+        if (!is_email($recipient)) {
+            error_log('[CCF] Email: invalid recipient');
+            return false;
+        }
+        
+        // Тема письма
+        $prefix = !empty($attributes['subjectPrefix']) ? $attributes['subjectPrefix'] : '';
+        $subject = sprintf(
+            '%sNew contact form submission from %s',
+            $prefix ? $prefix . ' - ' : '',
+            get_bloginfo('name')
+        );
+        
+        // Тело письма (текст)
+        $message = "New message received via Company Contact Form\n\n";
+        $message .= "=== Contact Details ===\n";
+        $message .= "Name: {$data['first_name']} {$data['last_name']}\n";
+        $message .= "Email: {$data['email']}\n";
+        $message .= "Subject: {$data['subject']}\n";
+        $message .= "Message:\n{$data['message']}\n\n";
+        $message .= "=== Technical Details ===\n";
+        $message .= "IP: {$data['ip']}\n";
+        $message .= "Time: {$data['timestamp']}\n";
+        $message .= "Site: " . home_url() . "\n";
+        
+        // Заголовки
+        $headers = [
+            'From: ' . get_bloginfo('name') . ' <' . get_option('admin_email') . '>',
+            'Reply-To: ' . $data['email'],
+            'Content-Type: text/plain; charset=UTF-8',
+        ];
+
+        error_log('[CCF] Email: Attempting to send via wp_mail()');
+        error_log('[CCF] Email: To=' . $recipient . ', Subject=' . $subject);
+
+        $sent = wp_mail($recipient, $subject, $message, $headers);
+
+        if ($sent) {
+            error_log('[CCF] Email: wp_mail() returned TRUE');
+            return true;
+        } else {
+            error_log('[CCF] Email: wp_mail() returned FALSE');
+            // Попробуем получить ошибку из глобального $phpmailer
+            global $phpmailer;
+            if (is_object($phpmailer) && !empty($phpmailer->ErrorInfo)) {
+                error_log('[CCF] Email: PHPMailer error: ' . $phpmailer->ErrorInfo);
+            }
+            return false;
+        }
+
+        // Отправка
+        $sent = wp_mail($recipient, $subject, $message, $headers);
+        
+        if ($sent) {
+            error_log('[CCF] Email: sent to ' . $recipient);
+            return true;
+        } else {
+            error_log('[CCF] Email: failed to send to ' . $recipient);
+            return false;
+        }
+    }
+
 }

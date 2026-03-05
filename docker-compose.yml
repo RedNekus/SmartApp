@@ -32,6 +32,7 @@ services:
       - ./src/company-contact-form:/var/www/html/wp-content/plugins/company-contact-form
       - wp_data:/var/www/html
       - ./docker-configs/wp-config.php:/var/www/html/wp-config.php
+      - ./docker-configs/mu-plugins:/var/www/html/wp-content/mu-plugins 
     ports:
       - "8888:80"
     entrypoint: ["/bin/sh", "-c", "curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar && chmod +x wp-cli.phar && mv wp-cli.phar /usr/local/bin/wp && docker-entrypoint.sh apache2-foreground"]
