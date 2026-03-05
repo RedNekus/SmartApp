@@ -1,5 +1,10 @@
 # Company Contact Form
 
+[![CI](https://github.com/RedNekus/SmartApp/actions/workflows/ci.yml/badge.svg)](https://github.com/RedNekus/SmartApp/actions/workflows/ci.yml)
+[![PHP Version](https://img.shields.io/badge/PHP-8.1-blue.svg)](https://php.net)
+[![WordPress](https://img.shields.io/badge/WordPress-6.5+-blue.svg)](https://wordpress.org)
+[![License](https://img.shields.io/badge/License-GPL--2.0+-blue.svg)](LICENSE)
+
 A modern WordPress Gutenberg block plugin with REST API, AJAX submission, anti-spam protection, email notifications, and HubSpot integration.
 
 ## ✨ Features

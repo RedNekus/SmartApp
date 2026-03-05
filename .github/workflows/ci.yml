@@ -1,0 +1,96 @@
+name: CI - Company Contact Form
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    name: PHPUnit + PHPCS
+    runs-on: ubuntu-latest
+    
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: wordpress_test
+          MYSQL_USER: wordpress
+          MYSQL_PASSWORD: wordpress
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.1'
+          extensions: mysql, mysqli
+          tools: composer:v2
+
+      - name: Install Composer dependencies
+        run: |
+          cd src/company-contact-form
+          composer install --no-interaction --prefer-dist
+
+      - name: Set up WordPress test environment
+        run: |
+          cd src/company-contact-form
+          
+          # Скачиваем WordPress
+          wget -q https://wordpress.org/latest.tar.gz
+          tar -xzf latest.tar.gz -C /tmp/
+          
+          # Создаём директорию для тестовой библиотеки
+          mkdir -p /tmp/wordpress-tests-lib/includes
+          mkdir -p /tmp/wordpress-tests-lib/data
+          
+          # Скачиваем тестовую библиотеку WordPress
+          wget -q https://github.com/WordPress/wordpress-develop/archive/trunk.tar.gz
+          tar -xzf trunk.tar.gz
+          
+          # Копируем файлы
+          cp -r wordpress-develop-trunk/tests/phpunit/includes/* /tmp/wordpress-tests-lib/includes/
+          cp -r wordpress-develop-trunk/tests/phpunit/data/* /tmp/wordpress-tests-lib/data/
+          
+          # Очищаем
+          rm -rf wordpress-develop-trunk trunk.tar.gz latest.tar.gz
+          
+          # Создаём конфиг
+          cat > /tmp/wordpress-tests-lib/wp-tests-config.php << 'WPCONFIG'
+          <?php
+          define( 'ABSPATH', '/tmp/wordpress/' );
+          define( 'DB_NAME', 'wordpress_test' );
+          define( 'DB_USER', 'wordpress' );
+          define( 'DB_PASSWORD', 'wordpress' );
+          define( 'DB_HOST', '127.0.0.1:3306' );
+          define( 'WP_TESTS_DOMAIN', 'example.org' );
+          define( 'WP_TESTS_EMAIL', 'admin@example.org' );
+          define( 'WP_TESTS_TITLE', 'Test Blog' );
+          define( 'WP_PHP_BINARY', 'php' );
+          WPCONFIG
+          
+          # Проверяем, что файлы на месте
+          ls -la /tmp/wordpress-tests-lib/includes/
+          ls -la /tmp/wordpress-tests-lib/data/
+
+      - name: Run PHPUnit tests
+        run: |
+          cd src/company-contact-form
+          export WP_TESTS_DIR=/tmp/wordpress-tests-lib
+          ./vendor/bin/phpunit --colors=always
+
+      - name: Run PHPCS lint
+        run: |
+          cd src/company-contact-form
+          ./vendor/bin/phpcs .
