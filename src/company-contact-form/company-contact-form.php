@@ -12,7 +12,12 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'CCF_VERSION', '1.2.0' );
+// Для разработки — отключаем кэш
+if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+	define( 'CCF_VERSION', time() );  // Версия = текущее время
+} else {
+	define( 'CCF_VERSION', '1.2.0' );
+}
 define( 'CCF_PATH', plugin_dir_path( __FILE__ ) );
 define( 'CCF_URL', plugin_dir_url( __FILE__ ) );
 
@@ -130,54 +135,50 @@ function ccf_render_form( $attributes, $_content ) { // phpcs:ignore Generic.Cod
 		'nonce'      => wp_create_nonce( 'wp_rest' ),
 	);
 
+	// Get block wrapper attributes (includes class="wp-block-company-company-contact-form")
+	$wrapper_attributes = get_block_wrapper_attributes(
+		array(
+			'class' => 'ccf-form-wrapper',
+		)
+	);
+
 	// Start output buffering.
 	ob_start();
 
 	// Load template with extracted variables.
-	// phpcs:ignore WordPress.PHP.DontExtract.extract_extract
+    // phpcs:ignore WordPress.PHP.DontExtract.extract_extract
 	extract( $template_vars, EXTR_SKIP );
 	include __DIR__ . '/templates/frontend/form.php';
 
-	return ob_get_clean();
+	$form_content = ob_get_clean();
+
+	// Wrap with block wrapper (adds the block class!)
+	return sprintf( '<div %s>%s</div>', $wrapper_attributes, $form_content );
 }
 
 /**
  * ------------------------------------------------------------------------
- * Frontend assets
+ * Frontend assets (ONLY for public site, when block is present)
  * ------------------------------------------------------------------------
  */
 function ccf_enqueue_frontend_assets() {
+	// Load only if our block is on the page.
 	if ( ! has_block( 'company/company-contact-form' ) ) {
 		return;
 	}
 
-	$asset_file = CCF_PATH . 'build/index.asset.php';
-	if ( ! file_exists( $asset_file ) ) {
-		return;
-	}
-
-	$asset = require $asset_file;
-
-	// Gutenberg block script (from build/).
-	wp_enqueue_script(
-		'ccf-block',
-		CCF_URL . 'build/index.js',
-		$asset['dependencies'],
-		$asset['version'],
-		true
-	);
-
 	// Frontend form script (from assets/js/).
 	wp_enqueue_script(
-		'ccf-frontend',
+		'ccf-frontend-js',
 		CCF_URL . 'assets/js/index.js',
 		array(),
 		CCF_VERSION,
 		true
 	);
 
+	// Pass settings to frontend script.
 	wp_localize_script(
-		'ccf-frontend',
+		'ccf-frontend-js',  // ← Привязываем к правильному хендлу
 		'ccfSettings',
 		array(
 			'nonce'   => wp_create_nonce( 'wp_rest' ),
@@ -187,27 +188,12 @@ function ccf_enqueue_frontend_assets() {
 			'error'   => __( 'An error occurred. Please try again.', 'company-contact-form' ),
 		)
 	);
-
-	// Styles.
-	wp_enqueue_style(
-		'ccf-style',
-		CCF_URL . 'build/style-index.css',
-		array(),
-		$asset['version']
-	);
-
-	wp_enqueue_style(
-		'ccf-frontend',
-		CCF_URL . 'assets/css/frontend.css',
-		array(),
-		CCF_VERSION
-	);
 }
 add_action( 'wp_enqueue_scripts', 'ccf_enqueue_frontend_assets' );
 
 /**
  * ------------------------------------------------------------------------
- * Editor assets
+ * Editor assets (ONLY for Gutenberg editor)
  * ------------------------------------------------------------------------
  */
 function ccf_enqueue_editor_assets() {
@@ -218,19 +204,13 @@ function ccf_enqueue_editor_assets() {
 
 	$asset = require $asset_file;
 
+	// Editor script (built by @wordpress/scripts).
 	wp_enqueue_script(
-		'ccf-editor',
+		'ccf-editor-js',
 		CCF_URL . 'build/index.js',
 		$asset['dependencies'],
 		$asset['version'],
 		true
-	);
-
-	wp_enqueue_style(
-		'ccf-editor-style',
-		CCF_URL . 'build/style-index.css',
-		array(),
-		$asset['version']
 	);
 }
 add_action( 'enqueue_block_editor_assets', 'ccf_enqueue_editor_assets' );

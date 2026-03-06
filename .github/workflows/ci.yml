@@ -2,7 +2,7 @@ name: CI - Company Contact Form
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ main, develop, refactor/cleanup ]
   pull_request:
     branches: [ main ]
 

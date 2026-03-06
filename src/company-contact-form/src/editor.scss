@@ -1,9 +1,33 @@
 /**
- * The following styles get applied inside the editor only.
- *
- * Replace them with your own styles or remove the file completely.
+ * Editor-only styles for Company Contact Form
+ * These styles apply ONLY in the block editor
  */
 
-.wp-block-create-block-company-contact-form {
-	border: 1px dotted #f00;
+.wp-block-company-company-contact-form {
+	.ccf-editor-placeholder {
+		padding: 40px 20px;
+		text-align: center;
+		background-color: #f6f7f7;
+		border: 2px dashed #c3c4c7;
+		border-radius: 4px;
+		
+		strong {
+			display: block;
+			font-size: 18px;
+			color: #1e1e1e;
+			margin-bottom: 8px;
+			
+			// Emoji
+			&::before {
+				margin-right: 8px;
+			}
+		}
+		
+		small {
+			display: block;
+			font-size: 13px;
+			color: #757575;
+			line-height: 1.5;
+		}
+	}
 }
