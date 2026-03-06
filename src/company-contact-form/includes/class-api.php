@@ -172,12 +172,13 @@ class API {
 	 * @return bool True on success, false on failure.
 	 */
 	private static function send_to_hubspot( $request, $attributes ) {
-		$use_constants = defined( 'CCF_HUBSPOT_USE_CONSTANTS' ) && CCF_HUBSPOT_USE_CONSTANTS;
+		// Use Config class for credentials (supports .env and wp-config.php)
+		$use_constants = \CCF\Config::get_bool( 'CCF_HUBSPOT_USE_CONSTANTS', false );
 
 		if ( $use_constants ) {
-			$token     = defined( 'CCF_HUBSPOT_TOKEN' ) ? CCF_HUBSPOT_TOKEN : '';
-			$portal_id = defined( 'CCF_HUBSPOT_PORTAL_ID' ) ? CCF_HUBSPOT_PORTAL_ID : '';
-			$form_id   = defined( 'CCF_HUBSPOT_FORM_ID' ) ? CCF_HUBSPOT_FORM_ID : '';
+			$token     = \CCF\Config::get( 'CCF_HUBSPOT_TOKEN', '' );
+			$portal_id = \CCF\Config::get( 'CCF_HUBSPOT_PORTAL_ID', '' );
+			$form_id   = \CCF\Config::get( 'CCF_HUBSPOT_FORM_ID', '' );
 		} else {
 			$token     = $attributes['hubspotAccessToken'] ?? '';
 			$portal_id = $attributes['hubspotPortalId'] ?? '';

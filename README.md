@@ -96,7 +96,7 @@ Add these constants to `wp-config.php` for production:
 ```php
 /**
  * HubSpot Integration
- * Get credentials from: https://app.hubspot.com/developer
+ * Get credentials from: https://app.hubspot.com/developer  
  */
 define('CCF_HUBSPOT_TOKEN', 'pat-na1-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx');
 define('CCF_HUBSPOT_PORTAL_ID', '12345678');
@@ -111,6 +111,36 @@ define('SMTP_PORT', 587);
 define('SMTP_FROM_EMAIL', 'noreply@yourdomain.com');
 define('SMTP_FROM_NAME', 'Your Site Name');
 ```
+
+### 🌱 Environment Variables (`.env`) — Recommended for Development
+
+For local development, you can use a `.env` file instead of editing `wp-config.php`:
+
+1.  Copy the example file:
+    ```bash
+    cd wp-content/plugins/company-contact-form
+    cp .env.example .env
+    ```
+
+2.  Edit `.env` with your values:
+    ```env
+    # HubSpot Integration
+    CCF_HUBSPOT_TOKEN=pat-na1-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+    CCF_HUBSPOT_PORTAL_ID=12345678
+    CCF_HUBSPOT_FORM_ID=abcd-1234-efgh-5678
+    CCF_HUBSPOT_USE_CONSTANTS=true
+
+    # SMTP Configuration
+    SMTP_HOST=mailhog
+    SMTP_PORT=1025
+    SMTP_FROM_EMAIL=noreply@localhost
+    SMTP_FROM_NAME=Company Contact Form
+    ```
+
+> 🔐 **Security**: The `.env` file is excluded from version control (`.gitignore`). Never commit real credentials.
+
+> ⚖️ **Priority**: `wp-config.php` constants (if non-empty) > `.env` values > plugin defaults
+
 
 ### 🧪 Running Tests
 

@@ -43,6 +43,15 @@ spl_autoload_register(
 
 /**
  * ------------------------------------------------------------------------
+ * Load configuration from .env file (ТЕПЕРЬ класс точно загрузится)
+ * ------------------------------------------------------------------------
+ */
+if ( class_exists( 'CCF\\Config' ) ) {
+	CCF\Config::load();
+}
+
+/**
+ * ------------------------------------------------------------------------
  * WP-CLI Commands
  * ------------------------------------------------------------------------
  */
@@ -228,10 +237,11 @@ add_action( 'enqueue_block_editor_assets', 'ccf_enqueue_editor_assets' );
 
 /**
  * ------------------------------------------------------------------------
- * SMTP Configuration for MailHog
+ * SMTP Configuration for MailHog / Production SMTP
  * ------------------------------------------------------------------------
  */
-if ( defined( 'SMTP_HOST' ) && function_exists( 'add_filter' ) ) {
+$smtp_host = \CCF\Config::get( 'SMTP_HOST' );
+if ( $smtp_host && function_exists( 'add_filter' ) ) {
 	add_filter( 'wp_mail_use_phpmailer', '__return_true' );
 
 	add_action(
@@ -239,8 +249,8 @@ if ( defined( 'SMTP_HOST' ) && function_exists( 'add_filter' ) ) {
 		function ( $phpmailer ) {
 			$phpmailer->isSMTP();
 			// phpcs:disable WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
-			$phpmailer->Host       = SMTP_HOST;
-			$phpmailer->Port       = SMTP_PORT;
+			$phpmailer->Host       = \CCF\Config::get( 'SMTP_HOST' );
+			$phpmailer->Port       = \CCF\Config::get_int( 'SMTP_PORT', 587 );
 			$phpmailer->SMTPAuth   = false;
 			$phpmailer->SMTPSecure = '';
 			// phpcs:enable WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
@@ -250,7 +260,7 @@ if ( defined( 'SMTP_HOST' ) && function_exists( 'add_filter' ) ) {
 
 			// phpcs:disable WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
 			$phpmailer->From     = is_email( $admin_email ) ? $admin_email : 'noreply@localhost.local';
-			$phpmailer->FromName = $site_name ?: 'WordPress';
+			$phpmailer->FromName = \CCF\Config::get( 'SMTP_FROM_NAME', $site_name ?: 'WordPress' );
 			// phpcs:enable WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
 
 			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
