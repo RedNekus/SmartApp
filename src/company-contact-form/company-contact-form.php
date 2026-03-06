@@ -115,49 +115,20 @@ add_action( 'init', 'ccf_register_block' );
  * ------------------------------------------------------------------------
  */
 function ccf_render_form( $attributes, $_content ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed
+	// Prepare template variables.
+	$template_vars = array(
+		'attributes' => $attributes,
+		'nonce'      => wp_create_nonce( 'wp_rest' ),
+	);
+
+	// Start output buffering.
 	ob_start();
-	?>
-	<div class="ccf-form-wrapper">
-		<form class="ccf-form" method="post" novalidate>
-			<p>
-				<label>
-					<?php esc_html_e( 'First Name', 'company-contact-form' ); ?><br>
-					<input type="text" name="first_name" required>
-				</label>
-			</p>
 
-			<p>
-				<label>
-					<?php esc_html_e( 'Last Name', 'company-contact-form' ); ?><br>
-					<input type="text" name="last_name" required>
-				</label>
-			</p>
+	// Load template with extracted variables.
+	// phpcs:ignore WordPress.PHP.DontExtract.extract_extract
+	extract( $template_vars, EXTR_SKIP );
+	include __DIR__ . '/templates/frontend/form.php';
 
-			<p>
-				<label>
-					<?php esc_html_e( 'Email', 'company-contact-form' ); ?><br>
-					<input type="email" name="email" required>
-				</label>
-			</p>
-
-			<p>
-				<label>
-					<?php esc_html_e( 'Message', 'company-contact-form' ); ?><br>
-					<textarea name="message" rows="5" required></textarea>
-				</label>
-			</p>
-
-			<p>
-				<button type="submit">
-					<?php esc_html_e( 'Send', 'company-contact-form' ); ?>
-				</button>
-			</p>
-
-			<div class="ccf-response" aria-live="polite"></div>
-			<input type="hidden" name="ccf_block_attributes" value="<?php echo esc_attr( wp_json_encode( $attributes ) ); ?>">
-		</form>
-	</div>
-	<?php
 	return ob_get_clean();
 }
 
@@ -178,6 +149,7 @@ function ccf_enqueue_frontend_assets() {
 
 	$asset = require $asset_file;
 
+	// Gutenberg block script (from build/).
 	wp_enqueue_script(
 		'ccf-block',
 		CCF_URL . 'build/index.js',
@@ -186,20 +158,40 @@ function ccf_enqueue_frontend_assets() {
 		true
 	);
 
+	// Frontend form script (from assets/js/).
+	wp_enqueue_script(
+		'ccf-frontend',
+		CCF_URL . 'assets/js/index.js',
+		array(),
+		CCF_VERSION,
+		true
+	);
+
 	wp_localize_script(
-		'ccf-block',
+		'ccf-frontend',
 		'ccfSettings',
 		array(
-			'nonce'  => wp_create_nonce( 'wp_rest' ),
-			'apiUrl' => rest_url( 'company/v1/contact' ),
+			'nonce'   => wp_create_nonce( 'wp_rest' ),
+			'apiUrl'  => rest_url( 'company/v1/contact' ),
+			'sending' => __( 'Sending...', 'company-contact-form' ),
+			'success' => __( 'Message sent successfully!', 'company-contact-form' ),
+			'error'   => __( 'An error occurred. Please try again.', 'company-contact-form' ),
 		)
 	);
 
+	// Styles.
 	wp_enqueue_style(
 		'ccf-style',
 		CCF_URL . 'build/style-index.css',
 		array(),
 		$asset['version']
+	);
+
+	wp_enqueue_style(
+		'ccf-frontend',
+		CCF_URL . 'assets/css/frontend.css',
+		array(),
+		CCF_VERSION
 	);
 }
 add_action( 'wp_enqueue_scripts', 'ccf_enqueue_frontend_assets' );

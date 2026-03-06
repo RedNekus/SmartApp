@@ -110,8 +110,9 @@ define('SMTP_HOST', 'smtp.yourserver.com');
 define('SMTP_PORT', 587);
 define('SMTP_FROM_EMAIL', 'noreply@yourdomain.com');
 define('SMTP_FROM_NAME', 'Your Site Name');
+```
 
-## 🧪 Running Tests
+### 🧪 Running Tests
 
 ### Prerequisites
 - Docker & Docker Compose
