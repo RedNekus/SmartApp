@@ -143,7 +143,22 @@ class API {
 				array( 'status' => 400 )
 			);
 		}
-
+		// Validate required fields.
+		$required_fields = array( 'first_name', 'last_name', 'email', 'message' );
+		foreach ( $required_fields as $field ) {
+			$value = $request->get_param( $field );
+			if ( empty( $value ) || trim( $value ) === '' ) {
+				return new \WP_Error(
+					'required_field',
+					sprintf(
+						/* translators: %s: field name */
+						__( 'The "%s" field is required.', 'company-contact-form' ),
+						ucfirst( str_replace( '_', ' ', $field ) )
+					),
+					array( 'status' => 400 )
+				);
+			}
+		}
 		// Sanitize remaining fields.
 		$data = array(
 			'first_name' => sanitize_text_field( $request->get_param( 'first_name' ) ),

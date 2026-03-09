@@ -40,47 +40,59 @@ $attributes = wp_parse_args(
 
 		<input type="hidden" name="ccf_block_attributes" value="<?php echo esc_attr( wp_json_encode( $attributes ) ); ?>">
 
-		<p>
-			<label>
-				<span class="ccf-label"><?php esc_html_e( 'First Name', 'company-contact-form' ); ?></span>
-				<input type="text" name="first_name" required aria-required="true">
+		<!-- First Name -->
+		<p class="ccf-form-field">
+			<label for="ccf-first-name">
+				<span class="ccf-label"><?php esc_html_e( 'First Name', 'company-contact-form' ); ?> <span class="ccf-required">*</span></span>
+				<input type="text" id="ccf-first-name" name="first_name" required aria-required="true">
 			</label>
+			<span class="ccf-field-error" aria-live="polite"></span>
 		</p>
 
-		<p>
-			<label>
-				<span class="ccf-label"><?php esc_html_e( 'Last Name', 'company-contact-form' ); ?></span>
-				<input type="text" name="last_name" required aria-required="true">
+		<!-- Last Name -->
+		<p class="ccf-form-field">
+			<label for="ccf-last-name">
+				<span class="ccf-label"><?php esc_html_e( 'Last Name', 'company-contact-form' ); ?> <span class="ccf-required">*</span></span>
+				<input type="text" id="ccf-last-name" name="last_name" required aria-required="true">
 			</label>
+			<span class="ccf-field-error" aria-live="polite"></span>
 		</p>
 
-		<p>
-			<label>
-				<span class="ccf-label"><?php esc_html_e( 'Email', 'company-contact-form' ); ?></span>
-				<input type="email" name="email" required aria-required="true">
+		<!-- Email -->
+		<p class="ccf-form-field">
+			<label for="ccf-email">
+				<span class="ccf-label"><?php esc_html_e( 'Email', 'company-contact-form' ); ?> <span class="ccf-required">*</span></span>
+				<input type="email" id="ccf-email" name="email" required aria-required="true">
 			</label>
+			<span class="ccf-field-error" aria-live="polite"></span>
 		</p>
 
-		<p>
-			<label>
+		<!-- Subject -->
+		<p class="ccf-form-field">
+			<label for="ccf-subject">
 				<span class="ccf-label"><?php esc_html_e( 'Subject', 'company-contact-form' ); ?></span>
-				<input type="text" name="subject" value="<?php echo esc_attr( $attributes['subjectPrefix'] ); ?>">
+				<input type="text" id="ccf-subject" name="subject" value="<?php echo esc_attr( $attributes['subjectPrefix'] ); ?>">
 			</label>
+			<span class="ccf-field-error" aria-live="polite"></span>
 		</p>
 
-		<p>
-			<label>
-				<span class="ccf-label"><?php esc_html_e( 'Message', 'company-contact-form' ); ?></span>
-				<textarea name="message" rows="5" required aria-required="true"></textarea>
+		<!-- Message -->
+		<p class="ccf-form-field">
+			<label for="ccf-message">
+				<span class="ccf-label"><?php esc_html_e( 'Message', 'company-contact-form' ); ?> <span class="ccf-required">*</span></span>
+				<textarea id="ccf-message" name="message" rows="5" required aria-required="true"></textarea>
 			</label>
+			<span class="ccf-field-error" aria-live="polite"></span>
 		</p>
 
+		<!-- Submit -->
 		<p>
 			<button type="submit" class="ccf-submit-button">
 				<?php esc_html_e( 'Send', 'company-contact-form' ); ?>
 			</button>
 		</p>
 
+		<!-- General Response -->
 		<div class="ccf-response" aria-live="polite" role="status"></div>
 	</form>
 </div>

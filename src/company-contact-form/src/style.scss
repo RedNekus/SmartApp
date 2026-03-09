@@ -84,3 +84,30 @@
 		border: 1px solid #f5c6cb;
 	}
 }
+.ccf-form-field {
+	position: relative;
+}
+
+.ccf-required {
+	color: #d63638;
+	font-weight: normal;
+}
+
+.ccf-form input[type="text"],
+.ccf-form input[type="email"],
+.ccf-form textarea {
+	// ... твои существующие стили ...
+
+	&.ccf-field-error-input {
+		border-color: #d63638;
+		box-shadow: 0 0 0 1px #d63638;
+	}
+}
+
+.ccf-field-error {
+	display: block;
+	color: #d63638;
+	font-size: 13px;
+	margin-top: 4px;
+	min-height: 18px;
+}
