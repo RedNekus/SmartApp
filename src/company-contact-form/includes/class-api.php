@@ -30,10 +30,7 @@ class API {
 					array(
 						'methods'             => 'POST',
 						'callback'            => array( __CLASS__, 'handle_submission' ),
-						'permission_callback' => function () {
-							// Allow all requests in development mode.
-							return true;
-						},
+						'permission_callback' => array( __CLASS__, 'check_nonce' ),
 					)
 				);
 			}
@@ -77,7 +74,7 @@ class API {
 
 		if ( false === $attempts ) {
 			set_transient( $rate_key, 1, 60 );
-		} elseif ( $attempts >= 5 ) {
+		} elseif ( $attempts >= 3 ) {
 			return new \WP_Error(
 				'rate_limit',
 				__( 'Too many attempts. Please wait.', 'company-contact-form' ),
@@ -335,5 +332,29 @@ class API {
 		$sent = wp_mail( $recipient, $subject, $message, $headers );
 
 		return (bool) $sent;
+	}
+	/**
+	 * Verify nonce for REST API requests.
+	 *
+	 * Validates the X-WP-Nonce header to ensure the request is authenticated.
+	 * This method is used as the permission_callback for the contact form endpoint.
+	 *
+	 * @since 1.2.0
+	 *
+	 * @param \WP_REST_Request $request The REST request object.
+	 * @return true|\WP_Error True if nonce is valid, WP_Error with 403 status if invalid.
+	 */
+	public static function check_nonce( $request ) {
+		$nonce = $request->get_header( 'X-WP-Nonce' );
+
+		if ( empty( $nonce ) || ! wp_verify_nonce( $nonce, 'wp_rest' ) ) {
+			return new \WP_Error(
+				'rest_forbidden',
+				__( 'Invalid nonce. Authentication failed.', 'company-contact-form' ),
+				array( 'status' => 403 )
+			);
+		}
+
+		return true;
 	}
 }
