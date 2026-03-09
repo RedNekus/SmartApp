@@ -43,17 +43,31 @@ document.addEventListener( 'DOMContentLoaded', function() {
 				if ( response.ok ) {
 					// Success message.
 					responseDiv.className = 'ccf-response success';
-					responseDiv.textContent = result.message || 'Message sent successfully!';
+					responseDiv.textContent = result.message || ccfSettings.success;
 					form.reset();
 				} else {
-					// Error message.
+					// Error message - use specific error from server or fallback.
 					responseDiv.className = 'ccf-response error';
-					responseDiv.textContent = result.message || 'An error occurred. Please try again.';
+					
+					// Map error codes to localized messages.
+					const errorMessages = {
+						'invalid_email': ccfSettings.errorInvalidEmail,
+						'invalid_name': ccfSettings.errorInvalidName,
+						'required_field': ccfSettings.errorRequired,
+						'spam_detected': ccfSettings.errorSpam,
+						'too_fast': ccfSettings.errorTooFast,
+						'rate_limit': ccfSettings.errorRateLimit,
+						'unauthorized': ccfSettings.errorUnauthorized,
+						'server_error': ccfSettings.errorServerError,
+					};
+
+					const errorMessage = errorMessages[ result.code ] || result.message || ccfSettings.error;
+					responseDiv.textContent = errorMessage;
 				}
 			} catch ( error ) {
 				// Network error.
 				responseDiv.className = 'ccf-response error';
-				responseDiv.textContent = 'Network error. Please check your connection and try again.';
+				responseDiv.textContent = ccfSettings.errorNetwork || 'Network error. Please check your connection.';
 				console.error( 'CCF Form Error:', error );
 			} finally {
 				// Re-enable submit button.

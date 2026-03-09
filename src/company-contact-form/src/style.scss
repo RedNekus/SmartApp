@@ -38,6 +38,7 @@
 		border: 1px solid #ddd;
 		border-radius: 4px;
 		font-size: 14px;
+		box-sizing: border-box;
 
 		&:focus {
 			border-color: #0073aa;

@@ -50,15 +50,23 @@ class API {
 		// 1. Honeypot: if hidden field is filled, it's a bot.
 		$honeypot = $request->get_param( 'website' );
 		if ( ! empty( $honeypot ) ) {
-			return new \WP_Error( 'spam_detected', 'Honeypot triggered', array( 'status' => 400 ) );
+			return new \WP_Error(
+				'spam_detected',
+				__( 'Spam detected. Please try again.', 'company-contact-form' ),
+				array( 'status' => 400 )
+			);
 		}
 
-		// 2. Time-trap: if form submitted faster than 2 seconds, it's a bot.
+		// 2. Time-trap: if form submitted faster than 3 seconds, it's a bot.
 		$start_time = intval( $request->get_param( 'form_start_time' ) );
 		if ( $start_time > 0 ) {
 			$fill_time = time() - $start_time;
-			if ( $fill_time < 2 ) {
-				return new \WP_Error( 'spam_detected', 'Time-trap triggered', array( 'status' => 400 ) );
+			if ( $fill_time < 3 ) {
+				return new \WP_Error(
+					'too_fast',
+					__( 'Please wait a moment before submitting.', 'company-contact-form' ),
+					array( 'status' => 400 )
+				);
 			}
 		}
 
@@ -70,7 +78,11 @@ class API {
 		if ( false === $attempts ) {
 			set_transient( $rate_key, 1, 60 );
 		} elseif ( $attempts >= 5 ) {
-			return new \WP_Error( 'too_many_requests', 'Rate limit exceeded', array( 'status' => 429 ) );
+			return new \WP_Error(
+				'rate_limit',
+				__( 'Too many attempts. Please wait.', 'company-contact-form' ),
+				array( 'status' => 429 )
+			);
 		} else {
 			set_transient( $rate_key, $attempts + 1, 60 );
 		}
@@ -125,7 +137,11 @@ class API {
 		// Validate email (RFC-compliant).
 		$email = sanitize_email( $request->get_param( 'email' ) );
 		if ( ! is_email( $email ) ) {
-			return new \WP_Error( 'invalid_email', 'Invalid email format', array( 'status' => 400 ) );
+			return new \WP_Error(
+				'invalid_email',
+				__( 'Invalid email format', 'company-contact-form' ),
+				array( 'status' => 400 )
+			);
 		}
 
 		// Sanitize remaining fields.
@@ -158,7 +174,7 @@ class API {
 		return rest_ensure_response(
 			array(
 				'success' => true,
-				'message' => 'Form submitted successfully',
+				'message' => __( 'Message sent successfully!', 'company-contact-form' ),
 				'data'    => array( 'email' => $email ),
 			)
 		);

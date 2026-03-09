@@ -178,14 +178,32 @@ function ccf_enqueue_frontend_assets() {
 
 	// Pass settings to frontend script.
 	wp_localize_script(
-		'ccf-frontend-js',  // ← Привязываем к правильному хендлу
+		'ccf-frontend-js',
 		'ccfSettings',
 		array(
-			'nonce'   => wp_create_nonce( 'wp_rest' ),
-			'apiUrl'  => rest_url( 'company/v1/contact' ),
-			'sending' => __( 'Sending...', 'company-contact-form' ),
-			'success' => __( 'Message sent successfully!', 'company-contact-form' ),
-			'error'   => __( 'An error occurred. Please try again.', 'company-contact-form' ),
+			'nonce'             => wp_create_nonce( 'wp_rest' ),
+			'apiUrl'            => rest_url( 'company/v1/contact' ),
+			// Status messages
+			'sending'           => __( 'Sending...', 'company-contact-form' ),
+			'success'           => __( 'Message sent successfully!', 'company-contact-form' ),
+
+			// General errors
+			'error'             => __( 'An error occurred. Please try again.', 'company-contact-form' ),
+			'errorNetwork'      => __( 'Network error. Please check your connection.', 'company-contact-form' ),
+
+			// Validation errors
+			'errorInvalidEmail' => __( 'Invalid email format', 'company-contact-form' ),
+			'errorRequired'     => __( 'This field is required', 'company-contact-form' ),
+			'errorInvalidName'  => __( 'Invalid name format', 'company-contact-form' ),
+
+			// Anti-spam errors
+			'errorSpam'         => __( 'Spam detected. Please try again.', 'company-contact-form' ),
+			'errorTooFast'      => __( 'Please wait a moment before submitting.', 'company-contact-form' ),
+			'errorRateLimit'    => __( 'Too many attempts. Please wait.', 'company-contact-form' ),
+
+			// API errors
+			'errorServerError'  => __( 'Server error. Please try again later.', 'company-contact-form' ),
+			'errorUnauthorized' => __( 'Unauthorized request.', 'company-contact-form' ),
 		)
 	);
 }

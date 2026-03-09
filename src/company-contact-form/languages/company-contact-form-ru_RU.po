@@ -131,3 +131,52 @@ msgstr "Фамилия"
 #: company-contact-form.php:169
 msgid "Send"
 msgstr "Отправить"
+# === Frontend form messages (wp_localize_script in company-contact-form.php) ===
+
+#: company-contact-form.php:196
+msgid "Sending..."
+msgstr "Отправка..."
+
+#: company-contact-form.php:197
+msgid "Message sent successfully!"
+msgstr "Сообщение успешно отправлено!"
+
+#: company-contact-form.php:200
+msgid "An error occurred. Please try again."
+msgstr "Произошла ошибка. Попробуйте ещё раз."
+
+#: company-contact-form.php:201
+msgid "Network error. Please check your connection."
+msgstr "Ошибка сети. Проверьте подключение."
+
+#: company-contact-form.php:204
+msgid "Invalid email format"
+msgstr "Неверный формат email"
+
+#: company-contact-form.php:205
+msgid "This field is required"
+msgstr "Это поле обязательно"
+
+#: company-contact-form.php:206
+msgid "Invalid name format"
+msgstr "Неверный формат имени"
+
+#: company-contact-form.php:209
+msgid "Spam detected. Please try again."
+msgstr "Обнаружен спам. Попробуйте ещё раз."
+
+#: company-contact-form.php:210
+msgid "Please wait a moment before submitting."
+msgstr "Пожалуйста, подождите перед отправкой."
+
+#: company-contact-form.php:211
+msgid "Too many attempts. Please wait."
+msgstr "Слишком много попыток. Подождите."
+
+#: company-contact-form.php:214
+msgid "Server error. Please try again later."
+msgstr "Ошибка сервера. Попробуйте позже."
+
+#: company-contact-form.php:215
+msgid "Unauthorized request."
+msgstr "Неавторизованный запрос."
